@@ -1,7 +1,20 @@
 import React from 'react';
 import { ArrowRight, Play } from 'lucide-react';
+import { useAppState } from '../context/AppStateContext';
 
 export const Hero: React.FC = () => {
+  const { executeTraverse } = useAppState();
+
+  const handleStartVisualizer = () => {
+    const el = document.getElementById('playground');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+    setTimeout(() => {
+      executeTraverse();
+    }, 400);
+  };
+
   const handleScroll = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -29,19 +42,19 @@ export const Hero: React.FC = () => {
         {/* Action CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
           <button
-            onClick={() => handleScroll('tour')}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 group active:scale-98 shadow-sm"
+            onClick={handleStartVisualizer}
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 group active:scale-98 shadow-lg shadow-amber-500/20"
           >
-            <span>Start the Tour</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <Play className="w-4 h-4 fill-current text-slate-950" />
+            <span>▶ Run Live Visualizer</span>
           </button>
 
           <button
-            onClick={() => handleScroll('playground')}
+            onClick={() => handleScroll('tour')}
             className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 font-semibold text-sm sm:text-base transition-all flex items-center justify-center gap-2"
           >
-            <Play className="w-4 h-4 text-amber-400 fill-current" />
-            <span>Try the Playground</span>
+            <span>Learn the Concepts</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
 

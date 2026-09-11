@@ -3,7 +3,7 @@ import { Route, Play, BookOpen, Compass, Trophy, Menu, X, Code2 } from 'lucide-r
 import { useAppState } from '../context/AppStateContext';
 
 export const Navbar: React.FC = () => {
-  const { openCppModal } = useAppState();
+  const { openCppModal, executeTraverse } = useAppState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -20,6 +20,17 @@ export const Navbar: React.FC = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleRunVisualizer = () => {
+    setMobileMenuOpen(false);
+    const element = document.querySelector('#playground');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setTimeout(() => {
+      executeTraverse();
+    }, 400);
   };
 
   return (
@@ -67,13 +78,13 @@ export const Navbar: React.FC = () => {
               <span>&lt;/&gt; C++ Code</span>
             </button>
 
-            {/* Try Playground Button */}
+            {/* Run Visualizer Button */}
             <button
-              onClick={() => handleScroll('#playground')}
+              onClick={handleRunVisualizer}
               className="px-4 py-1.5 text-xs font-bold rounded-lg bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors shadow-sm flex items-center gap-1.5"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Playground</span>
+              <span>Run Visualizer</span>
             </button>
           </div>
 
@@ -112,6 +123,13 @@ export const Navbar: React.FC = () => {
           ))}
           <div className="pt-2 flex flex-col gap-2">
             <button
+              onClick={handleRunVisualizer}
+              className="w-full text-center py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 flex items-center justify-center gap-1.5"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Run Visualizer</span>
+            </button>
+            <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 openCppModal('full');
@@ -120,12 +138,6 @@ export const Navbar: React.FC = () => {
             >
               <Code2 className="w-3.5 h-3.5 text-amber-400" />
               <span>View C++ Implementation</span>
-            </button>
-            <button
-              onClick={() => handleScroll('#playground')}
-              className="w-full text-center py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400"
-            >
-              Try Playground
             </button>
           </div>
         </div>

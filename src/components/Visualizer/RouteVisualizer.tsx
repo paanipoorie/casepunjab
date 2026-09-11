@@ -6,7 +6,7 @@ import { PointerMemoryView } from './PointerMemoryView';
 import { StepStatusBanner } from './StepStatusBanner';
 import { NodeData } from '../../types/linked-list';
 import { 
-  Eye, Cpu, ArrowRight, MapPin, AlertCircle, RefreshCw, X, Code2, Sparkles 
+  Eye, Cpu, ArrowRight, MapPin, AlertCircle, RefreshCw, X, Code2, Sparkles, Play, Compass 
 } from 'lucide-react';
 
 export const RouteVisualizer: React.FC = () => {
@@ -21,6 +21,8 @@ export const RouteVisualizer: React.FC = () => {
     currentStepIndex,
     currentStep,
     executeReset,
+    executeTraverse,
+    isAnimating,
     openCppModal,
     activeOperation
   } = useAppState();
@@ -108,16 +110,27 @@ export const RouteVisualizer: React.FC = () => {
           </span>
         </div>
 
-        {/* Action Buttons: Route View / Pointer View / C++ Code Button */}
+        {/* Action Controls: Primary Run Button + View Switcher + C++ Code Button */}
         <div className="flex flex-wrap items-center gap-2">
           
+          {/* Prominent Run / Start Visualizer Button */}
+          <button
+            onClick={() => executeTraverse()}
+            disabled={displayNodes.length === 0}
+            className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 active:scale-95"
+            title="Start animated traversal from HEAD to NULL"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            <span>{isAnimating ? 'Restart Animation' : '▶ Run Visualizer'}</span>
+          </button>
+
           {/* View Mode Switcher */}
           <div className="flex items-center p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-semibold">
             <button
               onClick={() => setViewMode('route')}
               className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
                 viewMode === 'route'
-                  ? 'bg-amber-500 text-slate-950 font-bold'
+                  ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -128,7 +141,7 @@ export const RouteVisualizer: React.FC = () => {
               onClick={() => setViewMode('pointer')}
               className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
                 viewMode === 'pointer'
-                  ? 'bg-amber-500 text-slate-950 font-bold'
+                  ? 'bg-slate-800 text-amber-400 font-bold border border-amber-500/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
