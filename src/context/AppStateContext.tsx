@@ -3,7 +3,6 @@ import { LinkedList } from '../lib/linked-list-engine';
 import { NodeData, NodeMetadata, OperationResult, OperationStep, OperationType, HistoryItem } from '../types/linked-list';
 import { ScenarioDef, ScenarioId } from '../types/scenario';
 import { SCENARIOS } from '../data/scenarios';
-import confetti from 'canvas-confetti';
 
 interface AppStateContextType {
   // Scenario & Data
@@ -25,7 +24,7 @@ interface AppStateContextType {
   
   // Active Animation & Execution State
   isAnimating: boolean;
-  animationSpeed: number; // in ms per step (e.g., 900, 1400, 2000)
+  animationSpeed: number; // in ms per step (e.g., 600, 1100, 1800)
   setAnimationSpeed: (ms: number) => void;
   currentResult: OperationResult | null;
   currentStepIndex: number;
@@ -57,6 +56,12 @@ interface AppStateContextType {
   // Notification / Status Message
   bannerMessage: { text: string; type: 'info' | 'success' | 'warning' | 'error' } | null;
   setBannerMessage: (msg: { text: string; type: 'info' | 'success' | 'warning' | 'error' } | null) => void;
+
+  // C++ Code Modal
+  isCppModalOpen: boolean;
+  cppModalDefaultTab: string;
+  openCppModal: (defaultTab?: string) => void;
+  closeCppModal: () => void;
 }
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -77,13 +82,31 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [currentResult, setCurrentResult] = useState<OperationResult | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [animationSpeed, setAnimationSpeed] = useState<number>(1100);
+  const [animationSpeed, setAnimationSpeed] = useState<number>(1000);
   const isPausedRef = useRef<boolean>(false);
   const animationTimerRef = useRef<number | null>(null);
 
   // History
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [bannerMessage, setBannerMessage] = useState<{ text: string; type: 'info' | 'success' | 'warning' | 'error' } | null>(null);
+
+  // C++ Modal State
+  const [isCppModalOpen, setIsCppModalOpen] = useState<boolean>(false);
+  const [cppModalDefaultTab, setCppModalDefaultTab] = useState<string>('full');
+
+  const openCppModal = (defaultTab: string = 'full') => {
+    setCppModalDefaultTab(defaultTab);
+    setIsCppModalOpen(true);
+  };
+
+  const closeCppModal = () => {
+    setIsCppModalOpen(false);
+  };
+
+  // Sync current array state helper
+  const syncStateFromList = () => {
+    setNodes(listRef.current.toArray());
+  };
 
   // Initialize or reset list based on current scenario
   const initializeWithScenario = useCallback((sc: ScenarioDef) => {
@@ -144,11 +167,6 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setScenarioId(id);
   };
 
-  // Sync current array state helper
-  const syncStateFromList = () => {
-    setNodes(listRef.current.toArray());
-  };
-
   // Clean animation runner
   const playStepAnimation = useCallback((result: OperationResult, onComplete?: () => void) => {
     if (animationTimerRef.current) {
@@ -162,7 +180,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // Check prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const stepDuration = prefersReducedMotion ? 150 : animationSpeed;
+    const stepDuration = prefersReducedMotion ? 200 : animationSpeed;
 
     let step = 0;
     const totalSteps = result.steps.length;
@@ -176,6 +194,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         animationTimerRef.current = window.setTimeout(tick, stepDuration);
       } else {
         setIsAnimating(false);
+        syncStateFromList();
         if (onComplete) onComplete();
       }
     };
@@ -184,6 +203,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       animationTimerRef.current = window.setTimeout(tick, stepDuration);
     } else {
       setIsAnimating(false);
+      syncStateFromList();
       if (onComplete) onComplete();
     }
   }, [animationSpeed]);
@@ -207,7 +227,6 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Operation: Add End
   const executeAddEnd = async (data: string, metadata?: NodeMetadata): Promise<OperationResult> => {
     const result = listRef.current.insertAtEndWithSteps(data, metadata);
-    syncStateFromList();
     setActiveOperation('add_end');
     setBannerMessage({ text: result.message, type: result.success ? 'success' : 'error' });
     addHistoryRecord('add_end', `Added "${data}" at end`, `Connected to tail node. Total nodes: ${listRef.current.size()}`, result);
@@ -218,7 +237,6 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Operation: Add Beginning
   const executeAddBeginning = async (data: string, metadata?: NodeMetadata): Promise<OperationResult> => {
     const result = listRef.current.insertAtBeginningWithSteps(data, metadata);
-    syncStateFromList();
     setActiveOperation('add_beginning');
     setBannerMessage({ text: result.message, type: result.success ? 'success' : 'error' });
     addHistoryRecord('add_beginning', `Added "${data}" at start`, `Assigned as new HEAD. Total nodes: ${listRef.current.size()}`, result);
@@ -229,9 +247,6 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Operation: Insert After
   const executeInsertAfter = async (targetIdOrName: string, data: string, metadata?: NodeMetadata): Promise<OperationResult> => {
     const result = listRef.current.insertAfterWithSteps(targetIdOrName, data, metadata);
-    if (result.success) {
-      syncStateFromList();
-    }
     setActiveOperation('insert_after');
     setBannerMessage({ text: result.message, type: result.success ? 'success' : 'error' });
     addHistoryRecord('insert_after', `Inserted "${data}" after "${targetIdOrName}"`, result.message, result);
@@ -242,9 +257,6 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Operation: Delete
   const executeDelete = async (targetIdOrName: string): Promise<OperationResult> => {
     const result = listRef.current.deleteWithSteps(targetIdOrName);
-    if (result.success) {
-      syncStateFromList();
-    }
     setActiveOperation('delete');
     setBannerMessage({ text: result.message, type: result.success ? 'success' : 'error' });
     addHistoryRecord('delete', `Deleted "${targetIdOrName}"`, result.message, result);
@@ -258,16 +270,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setActiveOperation('search');
     setBannerMessage({ text: result.message, type: result.success ? 'success' : 'warning' });
     addHistoryRecord('search', `Searched for "${query}"`, result.message, result);
-    
-    playStepAnimation(result, () => {
-      if (result.success) {
-        confetti({
-          particleCount: 40,
-          spread: 60,
-          origin: { y: 0.7 }
-        });
-      }
-    });
+    playStepAnimation(result);
     return result;
   };
 
@@ -329,6 +332,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         animationTimerRef.current = window.setTimeout(tick, animationSpeed);
       } else {
         setIsAnimating(false);
+        syncStateFromList();
       }
     };
     animationTimerRef.current = window.setTimeout(tick, animationSpeed);
@@ -337,7 +341,13 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const stepForward = () => {
     pauseAnimation();
     if (currentResult && currentStepIndex < currentResult.steps.length - 1) {
-      setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepIndex(prev => {
+        const next = prev + 1;
+        if (next === currentResult.steps.length - 1) {
+          syncStateFromList();
+        }
+        return next;
+      });
     }
   };
 
@@ -396,6 +406,10 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         clearHistory,
         bannerMessage,
         setBannerMessage,
+        isCppModalOpen,
+        cppModalDefaultTab,
+        openCppModal,
+        closeCppModal,
       }}
     >
       {children}

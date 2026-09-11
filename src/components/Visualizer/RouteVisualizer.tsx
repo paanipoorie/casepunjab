@@ -1,11 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { LinkedListNodeCard } from './LinkedListNodeCard';
 import { PointerConnectionArrow } from './PointerConnectionArrow';
 import { PointerMemoryView } from './PointerMemoryView';
 import { StepStatusBanner } from './StepStatusBanner';
+import { NodeData } from '../../types/linked-list';
 import { 
-  Eye, Cpu, ArrowRight, MapPin, AlertCircle, RefreshCw, X 
+  Eye, Cpu, ArrowRight, MapPin, AlertCircle, RefreshCw, X, Code2, Sparkles 
 } from 'lucide-react';
 
 export const RouteVisualizer: React.FC = () => {
@@ -16,20 +17,80 @@ export const RouteVisualizer: React.FC = () => {
     setSelectedNodeId, 
     viewMode, 
     setViewMode, 
+    currentResult,
+    currentStepIndex,
     currentStep,
-    executeReset 
+    executeReset,
+    openCppModal,
+    activeOperation
   } = useAppState();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Compute the live nodes to display according to the active animation step
+  const displayNodes = useMemo<NodeData[]>(() => {
+    if (!currentResult || !currentStep) return nodes;
+
+    const totalSteps = currentResult.steps.length;
+    const isFinished = currentStepIndex === totalSteps - 1 || currentStep.status === 'complete';
+
+    if (isFinished) {
+      return currentResult.afterState;
+    }
+
+    const op = currentResult.operation;
+
+    // During Insert After
+    if (op === 'insert_after') {
+      const targetId = currentStep.activeNodeId || currentStep.targetNodeId;
+      const baseNodes = currentResult.beforeState;
+      
+      if (currentStep.newNodeData) {
+        const result: NodeData[] = [];
+        for (const n of baseNodes) {
+          result.push(n);
+          if (n.id === targetId || n.data.toLowerCase() === String(targetId).toLowerCase()) {
+            result.push(currentStep.newNodeData);
+          }
+        }
+        return result.length > baseNodes.length ? result : [...baseNodes, currentStep.newNodeData];
+      }
+      return baseNodes;
+    }
+
+    // During Add Beginning
+    if (op === 'add_beginning') {
+      if (currentStep.newNodeData) {
+        return [currentStep.newNodeData, ...currentResult.beforeState];
+      }
+      return currentResult.beforeState;
+    }
+
+    // During Add End
+    if (op === 'add_end') {
+      if (currentStep.newNodeData && (currentStep.status === 'inserting' || currentStep.status === 'reconnecting')) {
+        return [...currentResult.beforeState, currentStep.newNodeData];
+      }
+      return currentResult.beforeState;
+    }
+
+    // During Delete: keep target node visible in beforeState so the user can see it unlinking!
+    if (op === 'delete') {
+      return currentResult.beforeState;
+    }
+
+    // Search and Traverse: use beforeState
+    return currentResult.beforeState.length > 0 ? currentResult.beforeState : nodes;
+  }, [currentResult, currentStep, currentStepIndex, nodes]);
+
   const getNextAddress = (nextId: string | null) => {
     if (!nextId) return null;
-    const found = nodes.find(n => n.id === nextId);
+    const found = displayNodes.find(n => n.id === nextId);
     return found ? found.conceptualAddress : null;
   };
 
-  const selectedNode = nodes.find(n => n.id === selectedNodeId);
-  const selectedIndex = nodes.findIndex(n => n.id === selectedNodeId);
+  const selectedNode = displayNodes.find(n => n.id === selectedNodeId);
+  const selectedIndex = displayNodes.findIndex(n => n.id === selectedNodeId);
 
   return (
     <div id="playground-visualizer" className="space-y-4">
@@ -43,12 +104,14 @@ export const RouteVisualizer: React.FC = () => {
             {scenario.title}
           </span>
           <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-950 text-amber-400 border border-slate-800 font-semibold">
-            {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
+            {displayNodes.length} {displayNodes.length === 1 ? 'node' : 'nodes'}
           </span>
         </div>
 
-        {/* View Mode Switcher: Route View / Pointer View */}
-        <div className="flex items-center gap-2">
+        {/* Action Buttons: Route View / Pointer View / C++ Code Button */}
+        <div className="flex flex-wrap items-center gap-2">
+          
+          {/* View Mode Switcher */}
           <div className="flex items-center p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-semibold">
             <button
               onClick={() => setViewMode('route')}
@@ -73,11 +136,32 @@ export const RouteVisualizer: React.FC = () => {
               <span>Pointer View</span>
             </button>
           </div>
+
+          {/* C++ Code Button */}
+          <button
+            onClick={() => {
+              const tabMap: Record<string, string> = {
+                add_end: 'insert',
+                add_beginning: 'insert',
+                insert_after: 'insert',
+                delete: 'delete',
+                search: 'search_traverse',
+                traverse: 'search_traverse',
+              };
+              openCppModal(activeOperation ? tabMap[activeOperation] || 'full' : 'full');
+            }}
+            className="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm group"
+            title="View complete C++ implementation"
+          >
+            <Code2 className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span>&lt;/&gt; C++ Implementation</span>
+          </button>
+
         </div>
 
       </div>
 
-      {/* Step Status Banner */}
+      {/* Step Status & Animation Playback Banner */}
       <StepStatusBanner />
 
       {/* View Mode 1: Pointer View */}
@@ -89,7 +173,7 @@ export const RouteVisualizer: React.FC = () => {
           ref={containerRef}
           className="bg-slate-900/60 rounded-2xl border border-slate-800/90 p-4 sm:p-6 shadow-inner overflow-x-auto min-h-[220px] flex items-center"
         >
-          {nodes.length === 0 ? (
+          {displayNodes.length === 0 ? (
             /* Empty State Fallback */
             <div className="w-full text-center py-12 px-4">
               <AlertCircle className="w-10 h-10 text-slate-500 mx-auto mb-3" />
@@ -120,15 +204,16 @@ export const RouteVisualizer: React.FC = () => {
               </div>
 
               {/* Render Nodes sequentially */}
-              {nodes.map((node, index) => {
+              {displayNodes.map((node, index) => {
                 const isHead = index === 0;
-                const isTail = index === nodes.length - 1;
+                const isTail = index === displayNodes.length - 1;
                 const isSelected = selectedNodeId === node.id;
                 const isActive = currentStep?.activeNodeId === node.id;
                 const isFound = currentStep?.status === 'found' && currentStep?.activeNodeId === node.id;
                 const isTarget = currentStep?.targetNodeId === node.id;
                 const isSuccessor = currentStep?.affectedNextNodeId === node.id;
                 const isVisited = currentStep?.visitedNodeIds?.includes(node.id) || false;
+                const isNewNode = currentStep?.newNodeData?.id === node.id;
                 const nextAddress = getNextAddress(node.nextId);
 
                 return (
@@ -143,46 +228,26 @@ export const RouteVisualizer: React.FC = () => {
                       isFound={isFound}
                       isTarget={isTarget}
                       isSuccessor={isSuccessor}
-                      isNewNode={false}
+                      isNewNode={isNewNode}
                       isVisited={isVisited}
                       onSelect={(id) => setSelectedNodeId(id === selectedNodeId ? null : id)}
                       nextConceptualAddress={nextAddress}
                     />
 
+                    {/* Arrow between nodes */}
                     {!isTail ? (
-                      <div className="shrink-0 flex items-center justify-center">
-                        <div className="hidden lg:block">
-                          <PointerConnectionArrow
-                            targetAddress={nextAddress}
-                            isReconnecting={currentStep?.status === 'reconnecting' && currentStep?.activeNodeId === node.id}
-                            isBypassing={currentStep?.status === 'deleting' && currentStep?.targetNodeId === node.nextId}
-                            isHighlighted={isActive}
-                            isVertical={false}
-                          />
-                        </div>
-                        <div className="block lg:hidden my-1">
-                          <PointerConnectionArrow
-                            targetAddress={nextAddress}
-                            isReconnecting={currentStep?.status === 'reconnecting' && currentStep?.activeNodeId === node.id}
-                            isBypassing={currentStep?.status === 'deleting' && currentStep?.targetNodeId === node.nextId}
-                            isHighlighted={isActive}
-                            isVertical={true}
-                          />
-                        </div>
-                      </div>
+                      <PointerConnectionArrow
+                        isReconnecting={currentStep?.status === 'reconnecting' && (isActive || isNewNode)}
+                        isBypassing={currentStep?.status === 'deleting' && isTarget}
+                        isHighlighted={isActive || isVisited}
+                        label="next"
+                      />
                     ) : (
-                      /* TAIL node points to NULL */
-                      <div className="shrink-0 flex flex-col items-center justify-center lg:px-2 py-2">
-                        <div className="hidden lg:block mb-1">
-                          <PointerConnectionArrow
-                            targetAddress="NULL"
-                            label="next"
-                            isVertical={false}
-                          />
-                        </div>
-                        <div className="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-center font-mono">
-                          <span className="text-[10px] text-rose-400 block font-bold">END</span>
-                          <span className="text-xs font-bold text-rose-300">NULL</span>
+                      /* NULL Terminator after Tail */
+                      <div className="flex items-center gap-2 pl-1 shrink-0">
+                        <PointerConnectionArrow label="next" />
+                        <div className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 font-mono text-xs font-bold text-rose-400">
+                          NULL
                         </div>
                       </div>
                     )}
@@ -197,39 +262,35 @@ export const RouteVisualizer: React.FC = () => {
 
       {/* Selected Node Details Drawer */}
       {selectedNode && (
-        <div className="bg-slate-900 border border-amber-500/40 rounded-xl p-4 flex flex-col sm:flex-row items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 mt-0.5">
-              <MapPin className="w-4 h-4" />
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold flex items-center justify-center text-sm border border-amber-500/40">
+              #{selectedIndex + 1}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-amber-400 px-2 py-0.5 rounded bg-slate-950 border border-slate-800">
-                  {selectedNode.conceptualAddress}
-                </span>
-                <span className="text-sm font-bold text-slate-100">
+                <span className="font-bold text-slate-100 text-sm">
                   {selectedNode.data}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">
-                  (Position #{selectedIndex + 1} of {nodes.length})
+                <span className="font-mono text-[10px] text-amber-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+                  {selectedNode.conceptualAddress}
                 </span>
               </div>
-              <p className="text-xs text-slate-300 mt-1">
-                {selectedNode.metadata?.description || `A landmark stop in the active route.`}
+              <p className="text-slate-400 text-xs mt-0.5">
+                Points to: <span className="font-mono text-cyan-400 font-bold">{getNextAddress(selectedNode.nextId) || 'NULL'}</span>
               </p>
-              <div className="mt-2 text-xs font-mono text-slate-400 flex items-center gap-4">
-                <span>data: <strong className="text-slate-200">"{selectedNode.data}"</strong></span>
-                <span>next: <strong className="text-cyan-400">{getNextAddress(selectedNode.nextId) || 'NULL'}</strong></span>
-              </div>
             </div>
           </div>
-          <button
-            onClick={() => setSelectedNodeId(null)}
-            className="text-xs text-slate-400 hover:text-slate-200 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 flex items-center gap-1"
-          >
-            <X className="w-3.5 h-3.5" />
-            <span>Close</span>
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedNodeId(null)}
+              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors flex items-center gap-1"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Dismiss</span>
+            </button>
+          </div>
         </div>
       )}
 

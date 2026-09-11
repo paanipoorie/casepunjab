@@ -1,13 +1,63 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { ArrowRight, CornerDownRight, Cpu } from 'lucide-react';
+import { NodeData } from '../../types/linked-list';
+import { ArrowRight, CornerDownRight, Cpu, Plus, Trash2, Check } from 'lucide-react';
 
 export const PointerMemoryView: React.FC = () => {
-  const { nodes, currentStep, selectedNodeId, setSelectedNodeId } = useAppState();
+  const { nodes, currentResult, currentStepIndex, currentStep, selectedNodeId, setSelectedNodeId } = useAppState();
+
+  const displayNodes = useMemo<NodeData[]>(() => {
+    if (!currentResult || !currentStep) return nodes;
+
+    const totalSteps = currentResult.steps.length;
+    const isFinished = currentStepIndex === totalSteps - 1 || currentStep.status === 'complete';
+
+    if (isFinished) {
+      return currentResult.afterState;
+    }
+
+    const op = currentResult.operation;
+
+    if (op === 'insert_after') {
+      const targetId = currentStep.activeNodeId || currentStep.targetNodeId;
+      const baseNodes = currentResult.beforeState;
+      if (currentStep.newNodeData) {
+        const result: NodeData[] = [];
+        for (const n of baseNodes) {
+          result.push(n);
+          if (n.id === targetId || n.data.toLowerCase() === String(targetId).toLowerCase()) {
+            result.push(currentStep.newNodeData);
+          }
+        }
+        return result.length > baseNodes.length ? result : [...baseNodes, currentStep.newNodeData];
+      }
+      return baseNodes;
+    }
+
+    if (op === 'add_beginning') {
+      if (currentStep.newNodeData) {
+        return [currentStep.newNodeData, ...currentResult.beforeState];
+      }
+      return currentResult.beforeState;
+    }
+
+    if (op === 'add_end') {
+      if (currentStep.newNodeData && (currentStep.status === 'inserting' || currentStep.status === 'reconnecting')) {
+        return [...currentResult.beforeState, currentStep.newNodeData];
+      }
+      return currentResult.beforeState;
+    }
+
+    if (op === 'delete') {
+      return currentResult.beforeState;
+    }
+
+    return currentResult.beforeState.length > 0 ? currentResult.beforeState : nodes;
+  }, [currentResult, currentStep, currentStepIndex, nodes]);
 
   const getNodeAddress = (id: string | null) => {
     if (!id) return 'NULL';
-    const found = nodes.find(n => n.id === id);
+    const found = displayNodes.find(n => n.id === id);
     return found ? found.conceptualAddress : 'NULL';
   };
 
@@ -18,14 +68,14 @@ export const PointerMemoryView: React.FC = () => {
         <div>
           <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
             <Cpu className="w-4 h-4 text-amber-400" />
-            <span>Pointer &amp; Address View</span>
+            <span>Pointer &amp; Address Memory View</span>
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Nodes live at distinct locations. Each node explicitly stores the pointer to the next node.
+            Nodes live at distinct locations in heap memory. Each node explicitly stores the pointer to the next node.
           </p>
         </div>
         <div className="text-xs text-slate-400 font-mono bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-          HEAD ➔ <span className="text-amber-400 font-bold">{nodes[0]?.conceptualAddress || 'NULL'}</span>
+          HEAD ➔ <span className="text-amber-400 font-bold">{displayNodes[0]?.conceptualAddress || 'NULL'}</span>
         </div>
       </div>
 
@@ -33,11 +83,11 @@ export const PointerMemoryView: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 min-w-max">
           
           {/* HEAD Pointer Box */}
-          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col justify-center items-center text-center font-mono">
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col justify-center items-center text-center font-mono shrink-0">
             <span className="text-[10px] text-amber-400 uppercase font-bold tracking-wider">ENTRY POINTER</span>
             <span className="text-sm font-extrabold text-amber-300">HEAD</span>
             <span className="text-xs text-slate-300 mt-1">
-              ➔ {nodes[0]?.conceptualAddress || 'NULL'}
+              ➔ {displayNodes[0]?.conceptualAddress || 'NULL'}
             </span>
           </div>
 
@@ -45,12 +95,14 @@ export const PointerMemoryView: React.FC = () => {
           <CornerDownRight className="w-4 h-4 text-amber-400 sm:hidden self-center" />
 
           {/* Node Memory Cells */}
-          {nodes.map((node, index) => {
+          {displayNodes.map((node, index) => {
             const isHead = index === 0;
-            const isTail = index === nodes.length - 1;
+            const isTail = index === displayNodes.length - 1;
             const isActive = currentStep?.activeNodeId === node.id;
             const isTarget = currentStep?.targetNodeId === node.id;
             const isSuccessor = currentStep?.affectedNextNodeId === node.id;
+            const isNewNode = currentStep?.newNodeData?.id === node.id;
+            const isFound = currentStep?.status === 'found' && currentStep?.activeNodeId === node.id;
             const nextAddr = getNodeAddress(node.nextId);
 
             return (
@@ -58,7 +110,11 @@ export const PointerMemoryView: React.FC = () => {
                 <div
                   onClick={() => setSelectedNodeId(node.id)}
                   className={`cursor-pointer rounded-xl border font-mono transition-all text-xs select-none w-48 ${
-                    isActive
+                    isFound
+                      ? 'border-emerald-500 bg-emerald-950/40 ring-2 ring-emerald-400 shadow-md'
+                      : isNewNode
+                      ? 'border-amber-400 bg-amber-950/40 ring-2 ring-amber-400 shadow-md animate-pulse'
+                      : isActive
                       ? 'border-amber-400 bg-amber-950/40 ring-2 ring-amber-400 shadow-md'
                       : isTarget
                       ? 'border-rose-500 bg-rose-950/40 ring-2 ring-rose-400'
@@ -112,7 +168,7 @@ export const PointerMemoryView: React.FC = () => {
       </div>
       
       <p className="mt-2 text-xs text-slate-400">
-        Unlike arrays where items must sit side-by-side in continuous memory slots, each node can be located anywhere because it carries its successor's address in its <code className="text-cyan-400 font-mono">next</code> field.
+        Unlike arrays where items must sit side-by-side in continuous memory slots, each node can be located anywhere in heap memory because it carries its successor's address in its <code className="text-cyan-400 font-mono">next</code> field.
       </p>
 
     </div>

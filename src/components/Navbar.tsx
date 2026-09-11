@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Route, Play, BookOpen, Compass, Trophy, Menu, X } from 'lucide-react';
+import { Route, Play, BookOpen, Compass, Trophy, Menu, X, Code2 } from 'lucide-react';
 import { useAppState } from '../context/AppStateContext';
 
 export const Navbar: React.FC = () => {
-  const { scenario } = useAppState();
+  const { openCppModal } = useAppState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -55,19 +55,38 @@ export const Navbar: React.FC = () => {
             ))}
           </div>
 
-          {/* Quick Action Button */}
-          <div className="hidden sm:flex items-center gap-3">
+          {/* Quick Action Buttons */}
+          <div className="hidden sm:flex items-center gap-2.5">
+            {/* C++ Code Modal Trigger */}
+            <button
+              onClick={() => openCppModal('full')}
+              className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 transition-colors shadow-sm flex items-center gap-1.5"
+              title="Open C++ Singly Linked List Implementation"
+            >
+              <Code2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>&lt;/&gt; C++ Code</span>
+            </button>
+
+            {/* Try Playground Button */}
             <button
               onClick={() => handleScroll('#playground')}
-              className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors shadow-sm flex items-center gap-1.5"
+              className="px-4 py-1.5 text-xs font-bold rounded-lg bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors shadow-sm flex items-center gap-1.5"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Try Playground</span>
+              <span>Playground</span>
             </button>
           </div>
 
           {/* Mobile Menu Trigger */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={() => openCppModal('full')}
+              className="p-2 rounded-lg text-amber-400 bg-slate-900 border border-slate-800 focus:outline-none"
+              title="C++ Code"
+              aria-label="View C++ Code"
+            >
+              <Code2 className="w-4 h-4" />
+            </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none"
@@ -91,10 +110,20 @@ export const Navbar: React.FC = () => {
               {link.label}
             </button>
           ))}
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col gap-2">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openCppModal('full');
+              }}
+              className="w-full text-center py-2 rounded-lg bg-slate-950 text-amber-300 font-bold text-xs border border-amber-500/40 hover:bg-slate-800 flex items-center justify-center gap-1.5"
+            >
+              <Code2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>View C++ Implementation</span>
+            </button>
             <button
               onClick={() => handleScroll('#playground')}
-              className="w-full text-center py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-sm hover:bg-amber-400"
+              className="w-full text-center py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400"
             >
               Try Playground
             </button>

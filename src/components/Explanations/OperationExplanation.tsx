@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Info, Code2 } from 'lucide-react';
 
 export const OperationExplanation: React.FC = () => {
-  const { currentResult } = useAppState();
+  const { currentResult, openCppModal, activeOperation } = useAppState();
 
   if (!currentResult) {
     return (
@@ -91,9 +91,30 @@ export const OperationExplanation: React.FC = () => {
           </h3>
         </div>
 
-        {/* Complexity badge */}
-        <div className="px-2.5 py-1 rounded-md bg-slate-950 border border-slate-800 text-xs font-mono text-cyan-300">
-          Time: <strong className="text-white">{complexity.time}</strong>
+        <div className="flex items-center gap-2">
+          {/* Complexity badge */}
+          <div className="px-2.5 py-1 rounded-md bg-slate-950 border border-slate-800 text-xs font-mono text-cyan-300">
+            Time: <strong className="text-white">{complexity.time}</strong>
+          </div>
+
+          {/* C++ Code Button */}
+          <button
+            onClick={() => {
+              const tabMap: Record<string, string> = {
+                add_end: 'insert',
+                add_beginning: 'insert',
+                insert_after: 'insert',
+                delete: 'delete',
+                search: 'search_traverse',
+                traverse: 'search_traverse',
+              };
+              openCppModal(activeOperation ? tabMap[activeOperation] || 'full' : 'full');
+            }}
+            className="px-2.5 py-1 rounded-md bg-slate-950 hover:bg-slate-800 border border-amber-500/40 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <Code2 className="w-3.5 h-3.5 text-amber-400" />
+            <span>C++ Code</span>
+          </button>
         </div>
       </div>
 

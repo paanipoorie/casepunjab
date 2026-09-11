@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppStateProvider } from './context/AppStateContext';
+import { AppStateProvider, useAppState } from './context/AppStateContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { StorySection } from './components/StorySection';
@@ -13,8 +13,11 @@ import { ChallengeMode } from './components/Challenges/ChallengeMode';
 import { ComplexityComparison } from './components/Complexity/ComplexityComparison';
 import { QuizSection } from './components/Quiz/QuizSection';
 import { Footer } from './components/Footer';
+import { CppCodeModal } from './components/CppCodeModal';
 
 export const AppContent: React.FC = () => {
+  const { isCppModalOpen, closeCppModal, cppModalDefaultTab } = useAppState();
+
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
       
@@ -42,7 +45,7 @@ export const AppContent: React.FC = () => {
                 Live Linked List Engine
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Add, insert, delete, search, or traverse stops in real time. Watch pointers rewire as you manipulate the chain.
+                Add, insert, delete, search, or traverse stops in real time. Watch pointers rewire step-by-step as you manipulate the chain.
               </p>
             </div>
 
@@ -87,6 +90,13 @@ export const AppContent: React.FC = () => {
 
       {/* Footer */}
       <Footer />
+
+      {/* C++ Implementation Modal */}
+      <CppCodeModal
+        isOpen={isCppModalOpen}
+        onClose={closeCppModal}
+        defaultTab={cppModalDefaultTab}
+      />
 
     </div>
   );

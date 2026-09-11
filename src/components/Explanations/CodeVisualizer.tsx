@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { Terminal, Copy, Check } from 'lucide-react';
+import { CODE_SNIPPETS } from '../../lib/code-snippets';
+import { Terminal, Copy, Check, Code2, ExternalLink } from 'lucide-react';
 
 export const CodeVisualizer: React.FC = () => {
-  const { currentResult, currentStep } = useAppState();
+  const { currentResult, currentStep, openCppModal, activeOperation } = useAppState();
   const [copied, setCopied] = useState(false);
   const [manualSelectedLine, setManualSelectedLine] = useState<number | null>(null);
 
-  const codeSnippets = currentResult?.codeSnippet || [];
+  // If no operation has been run yet, default to add_end snippet
+  const codeSnippets = (currentResult?.codeSnippet && currentResult.codeSnippet.length > 0)
+    ? currentResult.codeSnippet
+    : CODE_SNIPPETS.add_end;
+
   const activeLine = manualSelectedLine !== null 
     ? manualSelectedLine 
     : (currentStep?.highlightedCodeLine || 1);
@@ -30,37 +35,52 @@ export const CodeVisualizer: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (codeSnippets.length === 0) {
-    return (
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center shadow-sm">
-        <h4 className="text-sm font-bold text-slate-200">C++ Pointer Implementation</h4>
-        <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-          Perform an operation above to view corresponding C++ pointer execution.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div id="code-panel" className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
       
       {/* Code Header Bar */}
-      <div className="px-4 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+      <div className="px-4 py-3 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-amber-400" />
           <span className="text-xs font-mono font-bold text-slate-200 uppercase tracking-wider">
-            C++ Pointer Logic
+            C++ Pointer Execution
+          </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-cyan-400 border border-slate-800">
+            {activeOperation ? activeOperation.replace('_', ' ') : 'default snippet'}
           </span>
         </div>
 
-        <button
-          onClick={handleCopyCode}
-          className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors"
-          title="Copy C++ code"
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          <span>{copied ? 'Copied' : 'Copy'}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Full C++ Implementation Button */}
+          <button
+            onClick={() => {
+              const tabMap: Record<string, string> = {
+                add_end: 'insert',
+                add_beginning: 'insert',
+                insert_after: 'insert',
+                delete: 'delete',
+                search: 'search_traverse',
+                traverse: 'search_traverse',
+              };
+              openCppModal(activeOperation ? tabMap[activeOperation] || 'full' : 'full');
+            }}
+            className="text-xs text-amber-300 hover:text-amber-200 flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-amber-500/30 transition-colors"
+            title="Open full C++ class implementation modal"
+          >
+            <Code2 className="w-3.5 h-3.5 text-amber-400" />
+            <span>Full C++ Class</span>
+          </button>
+
+          {/* Copy Button */}
+          <button
+            onClick={handleCopyCode}
+            className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors"
+            title="Copy snippet"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copied ? 'Copied' : 'Copy'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Code Lines */}
@@ -104,14 +124,16 @@ export const CodeVisualizer: React.FC = () => {
         </div>
       </div>
 
-      {/* Line Explanation */}
-      <div className="p-4 bg-slate-950/90 border-t border-slate-800 text-xs sm:text-sm">
-        <div className="font-mono text-[11px] text-amber-400 font-bold mb-1">
-          Line {activeLine} Explanation:
+      {/* Selected Line Pointer Explanation */}
+      <div className="p-3.5 bg-slate-950/80 border-t border-slate-800 text-xs text-slate-300">
+        <div className="flex items-start gap-2">
+          <span className="font-mono text-amber-400 font-bold shrink-0">
+            Line {activeLine}:
+          </span>
+          <p className="leading-relaxed">
+            {activeExplanation}
+          </p>
         </div>
-        <p className="text-slate-300 leading-relaxed">
-          {activeExplanation}
-        </p>
       </div>
 
     </div>
