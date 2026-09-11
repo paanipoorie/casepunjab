@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { Link2, Compass, PlayCircle, Code2, BookOpen, Trophy, HelpCircle, Menu, X, Sparkles } from 'lucide-react';
+import { Route, Play, BookOpen, Compass, Trophy, Menu, X } from 'lucide-react';
 import { useAppState } from '../context/AppStateContext';
 
 export const Navbar: React.FC = () => {
-  const { scenario, size } = useAppState();
+  const { scenario } = useAppState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: 'Story', href: '#story', icon: BookOpen },
-    { label: 'Playground', href: '#playground', icon: PlayCircle },
-    { label: 'Pointers & Code', href: '#code-panel', icon: Code2 },
-    { label: 'Scenarios', href: '#scenarios', icon: Compass },
-    { label: 'Challenges', href: '#challenges', icon: Trophy },
-    { label: 'Quiz', href: '#quiz', icon: HelpCircle },
+    { label: 'Tour', href: '#tour' },
+    { label: 'Playground', href: '#playground' },
+    { label: 'How It Works', href: '#how-it-works' },
+    { label: 'Scenarios', href: '#scenarios' },
+    { label: 'Challenges', href: '#challenges' },
   ];
 
   const handleScroll = (href: string) => {
@@ -24,50 +23,46 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-800/80 transition-all">
+    <nav className="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo */}
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white font-bold">
-              <Link2 className="w-5 h-5" />
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-2.5 text-left focus:outline-none"
+          >
+            <div className="h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 font-bold shadow-sm">
+              <Route className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-extrabold text-lg text-slate-100 tracking-tight flex items-center gap-1.5">
-                LinkedList<span className="text-amber-400">DSA</span>
-              </span>
-              <span className="hidden sm:inline-block text-xs text-slate-400 font-mono ml-1.5 px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700/60">
-                {scenario.title} • {size} nodes
+              <span className="font-extrabold text-base tracking-wider text-slate-100 uppercase">
+                CASE<span className="text-amber-400">PUNJAB</span>
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-2">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <button
-                  key={link.label}
-                  onClick={() => handleScroll(link.href)}
-                  className="px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-amber-400 hover:bg-slate-800/60 rounded-md transition-colors flex items-center gap-1.5"
-                >
-                  <Icon className="w-4 h-4 opacity-70" />
-                  {link.label}
-                </button>
-              );
-            })}
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <button
+                key={link.label}
+                onClick={() => handleScroll(link.href)}
+                className="px-3.5 py-1.5 text-sm font-medium text-slate-300 hover:text-amber-400 hover:bg-slate-800/60 rounded-md transition-colors"
+              >
+                {link.label}
+              </button>
+            ))}
           </div>
 
           {/* Quick Action Button */}
           <div className="hidden sm:flex items-center gap-3">
             <button
               onClick={() => handleScroll('#playground')}
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:from-amber-400 hover:to-orange-400 shadow-md shadow-orange-500/10 transition-all flex items-center gap-2 active:scale-95"
+              className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors shadow-sm flex items-center gap-1.5"
             >
-              <Sparkles className="w-4 h-4 text-slate-950" />
-              Interactive Tour
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Try Playground</span>
             </button>
           </div>
 
@@ -75,10 +70,10 @@ export const Navbar: React.FC = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none"
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -86,27 +81,22 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden px-4 pt-2 pb-4 space-y-1 bg-slate-900 border-b border-slate-800 animate-fadeIn">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            return (
-              <button
-                key={link.label}
-                onClick={() => handleScroll(link.href)}
-                className="w-full text-left px-3 py-2.5 rounded-lg text-base font-medium text-slate-300 hover:text-amber-400 hover:bg-slate-800/80 flex items-center gap-3"
-              >
-                <Icon className="w-5 h-5 text-amber-400/80" />
-                {link.label}
-              </button>
-            );
-          })}
+        <div className="md:hidden px-4 pt-2 pb-4 space-y-1 bg-slate-900 border-b border-slate-800">
+          {navLinks.map((link) => (
+            <button
+              key={link.label}
+              onClick={() => handleScroll(link.href)}
+              className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-amber-400 hover:bg-slate-800/80"
+            >
+              {link.label}
+            </button>
+          ))}
           <div className="pt-2">
             <button
               onClick={() => handleScroll('#playground')}
-              className="w-full text-center py-2.5 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 flex items-center justify-center gap-2"
+              className="w-full text-center py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-sm hover:bg-amber-400"
             >
-              <Sparkles className="w-4 h-4" />
-              Open Interactive Playground
+              Try Playground
             </button>
           </div>
         </div>

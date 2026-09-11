@@ -13,38 +13,36 @@ import { ChallengeMode } from './components/Challenges/ChallengeMode';
 import { ComplexityComparison } from './components/Complexity/ComplexityComparison';
 import { QuizSection } from './components/Quiz/QuizSection';
 import { Footer } from './components/Footer';
-import { Compass, Sparkles, Code2, History, Layers } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
       
-      {/* Navigation */}
+      {/* 1. Navigation */}
       <Navbar />
 
       <main className="flex-1">
         
-        {/* 1. Hero Section */}
+        {/* 2. Hero Section */}
         <Hero />
 
-        {/* 2. Story Section */}
+        {/* 3. The Punjab Route Concept */}
         <StorySection />
 
-        {/* 3. Primary Linked List Playground */}
+        {/* 4. Interactive Playground */}
         <section id="playground" className="py-16 lg:py-20 bg-[#0c111e] border-b border-slate-800/80 relative">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             
             {/* Section Header */}
-            <div className="max-w-3xl mb-8">
-              <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-amber-400 mb-2">
-                <Compass className="w-4 h-4" />
-                <span>Interactive Learning Engine</span>
+            <div className="max-w-2xl mb-8">
+              <div className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 mb-2">
+                Playground
               </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight mb-3">
-                The Linked List Playground
+                Live Linked List Engine
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Directly manipulate the nodes below. Add landmarks, splice detours into the middle, bypass closed attractions, and watch pointers rewire in real time.
+                Add, insert, delete, search, or traverse stops in real time. Watch pointers rewire as you manipulate the chain.
               </p>
             </div>
 
@@ -55,16 +53,16 @@ export const AppContent: React.FC = () => {
             <OperationTabBar />
 
             {/* Explanations, Code, and History 2-Column Grid */}
-            <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
               {/* Left Column: Operation Breakdown & History */}
-              <div className="lg:col-span-6 space-y-8">
+              <div className="lg:col-span-6 space-y-6">
                 <OperationExplanation />
                 <OperationHistoryTimeline />
               </div>
 
               {/* Right Column: Code Visualizer */}
-              <div className="lg:col-span-6 space-y-8">
+              <div className="lg:col-span-6 space-y-6">
                 <CodeVisualizer />
               </div>
 
@@ -73,16 +71,16 @@ export const AppContent: React.FC = () => {
           </div>
         </section>
 
-        {/* 4. Scenario Switcher (Music, Train, Browser) */}
+        {/* 5. Real-World Scenarios */}
         <ScenarioSwitcher />
 
-        {/* 5. Challenge Mode */}
+        {/* 6. Challenge Mode */}
         <ChallengeMode />
 
-        {/* 6. Algorithmic Complexity Reference */}
+        {/* 7. Algorithmic Complexity Reference */}
         <ComplexityComparison />
 
-        {/* 7. Quiz & Conceptual Check */}
+        {/* 8. Quiz */}
         <QuizSection />
 
       </main>

@@ -2,11 +2,7 @@ import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { CHALLENGES } from '../../data/challenges';
 import { OperationType } from '../../types/linked-list';
-import { 
-  Trophy, CheckCircle2, XCircle, ArrowRight, Lightbulb, 
-  Sparkles, Play, RotateCcw, HelpCircle 
-} from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { Trophy, CheckCircle2, XCircle, ArrowRight, Lightbulb, Play } from 'lucide-react';
 
 export const ChallengeMode: React.FC = () => {
   const { 
@@ -73,14 +69,9 @@ export const ChallengeMode: React.FC = () => {
       }
     }
 
-    // Correct! Execute the operation on live state
+    // Correct!
     setResultState('success');
-    setFeedbackMessage(`Spot on! ${currentChallenge.explanation}`);
-    confetti({
-      particleCount: 60,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+    setFeedbackMessage(`Correct. ${currentChallenge.explanation}`);
 
     // Execute on live linked list state
     if (selectedOp === 'add_end') {
@@ -96,7 +87,6 @@ export const ChallengeMode: React.FC = () => {
       await executeSearch(currentChallenge.expectedTarget || 'Wagah Border');
     }
 
-    // Scroll back to visualizer to view execution
     const el = document.getElementById('playground-visualizer');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
@@ -105,29 +95,28 @@ export const ChallengeMode: React.FC = () => {
 
   return (
     <section id="challenges" className="py-16 bg-[#090d16] border-b border-slate-800/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="max-w-3xl mb-10">
-          <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-amber-400 mb-2">
-            <Trophy className="w-4 h-4" />
-            <span>Interactive Challenges</span>
+        <div className="max-w-2xl mb-8">
+          <div className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 mb-2">
+            Challenges
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight mb-3">
             Solve Tim's Travel Dilemmas
           </h2>
-          <p className="text-slate-300 text-base leading-relaxed">
-            Apply your linked-list intuition to real scenarios. Select the appropriate pointer operation and watch the application update in real time.
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+            Apply your linked-list intuition to real routing problems. Pick the correct operation and parameters.
           </p>
         </div>
 
         {/* Challenge Workspace Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Left Column: Challenge Selector List */}
           <div className="lg:col-span-4 space-y-2">
             <div className="text-xs font-mono font-bold uppercase text-slate-400 px-1 mb-2">
-              Select Challenge ({CHALLENGES.length}):
+              Problems ({CHALLENGES.length}):
             </div>
             {CHALLENGES.map((ch, idx) => (
               <button
@@ -135,13 +124,13 @@ export const ChallengeMode: React.FC = () => {
                 onClick={() => handleSelectChallenge(idx)}
                 className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 ${
                   currentChallengeIndex === idx
-                    ? 'bg-amber-500/10 border-amber-500/50 text-amber-300 shadow-md ring-1 ring-amber-500/30'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:bg-slate-900 hover:border-slate-700'
+                    ? 'bg-amber-500/10 border-amber-400 text-amber-300 ring-1 ring-amber-400/30'
+                    : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
                 }`}
               >
                 <div>
                   <div className="text-[11px] font-mono text-slate-500 font-bold">
-                    CHALLENGE #{idx + 1}
+                    Problem #{idx + 1}
                   </div>
                   <div className="text-sm font-bold text-slate-100 mt-0.5">
                     {ch.title}
@@ -154,13 +143,13 @@ export const ChallengeMode: React.FC = () => {
             ))}
           </div>
 
-          {/* Right Column: Active Interactive Challenge Panel */}
-          <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+          {/* Right Column: Active Challenge Panel */}
+          <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-7 shadow-sm">
             
             {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-800 mb-6">
-              <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">
-                Challenge #{currentChallengeIndex + 1} of {CHALLENGES.length}
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800 mb-5">
+              <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
+                Problem {currentChallengeIndex + 1} of {CHALLENGES.length}
               </span>
               <button
                 onClick={() => setShowHint(!showHint)}
@@ -171,19 +160,19 @@ export const ChallengeMode: React.FC = () => {
               </button>
             </div>
 
-            {/* Prompt Card */}
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-100 mb-2">
+            {/* Prompt */}
+            <div className="mb-5">
+              <h3 className="text-lg font-bold text-slate-100 mb-2">
                 {currentChallenge.title}
               </h3>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed p-4 rounded-xl bg-slate-950 border border-slate-800/80">
-                "{currentChallenge.prompt}"
+              <p className="text-slate-300 text-sm leading-relaxed p-3.5 rounded-lg bg-slate-950 border border-slate-800">
+                {currentChallenge.prompt}
               </p>
             </div>
 
             {/* Hint Box */}
             {showHint && (
-              <div className="mb-6 p-4 rounded-xl bg-cyan-950/30 border border-cyan-500/30 text-cyan-200 text-xs sm:text-sm leading-relaxed flex items-start gap-2.5">
+              <div className="mb-5 p-3 rounded-lg bg-cyan-950/30 border border-cyan-500/30 text-cyan-200 text-xs leading-relaxed flex items-start gap-2">
                 <Lightbulb className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-cyan-300">Hint:</strong> {currentChallenge.hint}
@@ -192,12 +181,12 @@ export const ChallengeMode: React.FC = () => {
             )}
 
             {/* Step 1: Choose Operation */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-3 mb-5">
               <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                1. Which linked-list operation should you perform?
+                1. Which linked-list operation is needed?
               </label>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { id: 'add_end' as OperationType, label: 'Add at End' },
                   { id: 'insert_after' as OperationType, label: 'Insert After' },
@@ -208,10 +197,10 @@ export const ChallengeMode: React.FC = () => {
                     key={op.id}
                     type="button"
                     onClick={() => setSelectedOp(op.id)}
-                    className={`p-3 rounded-xl border text-xs font-bold text-center transition-all ${
+                    className={`p-2.5 rounded-lg border text-xs font-bold text-center transition-all ${
                       selectedOp === op.id
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md ring-2 ring-amber-400/40'
-                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:bg-slate-800/80'
+                        ? 'bg-amber-500 text-slate-950 border-amber-400'
+                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
                     }`}
                   >
                     {op.label}
@@ -220,24 +209,24 @@ export const ChallengeMode: React.FC = () => {
               </div>
             </div>
 
-            {/* Step 2: Target & Value Configuration Form */}
+            {/* Step 2: Parameters */}
             {selectedOp && (
-              <div className="space-y-4 mb-6 p-4 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="space-y-3 mb-5 p-3.5 rounded-lg bg-slate-950 border border-slate-800">
                 <div className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                  2. Configure Parameters for {selectedOp.replace('_', ' ')}
+                  2. Configure Parameters
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {(selectedOp === 'insert_after' || selectedOp === 'delete' || selectedOp === 'search') && (
                     <div>
                       <label className="block text-xs text-slate-400 mb-1">
-                        {selectedOp === 'insert_after' ? 'Insert after which landmark?' :
-                         selectedOp === 'delete' ? 'Landmark to delete:' : 'Landmark to search:'}
+                        {selectedOp === 'insert_after' ? 'Insert after which stop?' :
+                         selectedOp === 'delete' ? 'Stop to remove:' : 'Stop to search:'}
                       </label>
                       <select
                         value={selectedTarget}
                         onChange={(e) => setSelectedTarget(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-100 font-mono"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs sm:text-sm text-slate-100 font-sans"
                       >
                         <option value="">-- Choose landmark --</option>
                         {nodes.map((n) => (
@@ -250,14 +239,14 @@ export const ChallengeMode: React.FC = () => {
                   {(selectedOp === 'add_end' || selectedOp === 'insert_after') && (
                     <div>
                       <label className="block text-xs text-slate-400 mb-1">
-                        New destination landmark name:
+                        New destination landmark:
                       </label>
                       <input
                         type="text"
                         placeholder="e.g. Gobindgarh Fort"
                         value={enteredValue}
                         onChange={(e) => setEnteredValue(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder-slate-600"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs sm:text-sm text-slate-100 placeholder-slate-600 font-sans"
                       />
                     </div>
                   )}
@@ -267,21 +256,21 @@ export const ChallengeMode: React.FC = () => {
 
             {/* Feedback Message */}
             {resultState !== 'idle' && (
-              <div className={`p-4 rounded-xl border text-sm mb-6 flex items-start gap-3 ${
+              <div className={`p-3.5 rounded-lg border text-xs sm:text-sm mb-5 flex items-start gap-2.5 ${
                 resultState === 'success'
                   ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-200'
                   : 'bg-rose-950/40 border-rose-500/50 text-rose-200'
               }`}>
                 {resultState === 'success' ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 ) : (
-                  <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                  <XCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                 )}
                 <div>
-                  <div className="font-bold text-sm mb-0.5">
-                    {resultState === 'success' ? 'Challenge Solved!' : 'Try Again'}
+                  <div className="font-bold text-xs sm:text-sm mb-0.5">
+                    {resultState === 'success' ? 'Correct' : 'Incorrect'}
                   </div>
-                  <p className="text-xs leading-relaxed">{feedbackMessage}</p>
+                  <p className="leading-relaxed">{feedbackMessage}</p>
                 </div>
               </div>
             )}
@@ -296,19 +285,19 @@ export const ChallengeMode: React.FC = () => {
                   setEnteredValue('');
                   setResultState('idle');
                 }}
-                className="text-xs text-slate-400 hover:text-slate-200 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700"
+                className="text-xs text-slate-400 hover:text-slate-200 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700"
               >
-                Clear Selections
+                Clear
               </button>
 
               <button
                 type="button"
                 onClick={handleValidateAndExecute}
                 disabled={!selectedOp}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-sm hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 transition-all flex items-center gap-2 shadow-md active:scale-98"
+                className="px-5 py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs sm:text-sm hover:bg-amber-400 disabled:opacity-50 transition-all flex items-center gap-2 active:scale-98 shadow-sm"
               >
-                <Play className="w-4 h-4 fill-current" />
-                <span>Submit & Execute on Route</span>
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Submit &amp; Execute</span>
               </button>
             </div>
 

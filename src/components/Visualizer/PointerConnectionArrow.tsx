@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, CornerDownRight, Shuffle } from 'lucide-react';
+import { ArrowRight, CornerDownRight } from 'lucide-react';
 
 interface PointerConnectionArrowProps {
   isReconnecting?: boolean;
@@ -19,50 +19,44 @@ export const PointerConnectionArrow: React.FC<PointerConnectionArrowProps> = ({
   isVertical = false,
 }) => {
   return (
-    <div className={`flex flex-col items-center justify-center relative select-none ${isVertical ? 'py-3' : 'px-2 sm:px-3'}`}>
+    <div className={`flex flex-col items-center justify-center relative select-none ${isVertical ? 'py-2' : 'px-2'}`}>
       
       {/* Visual Line and Indicator */}
-      <div className={`flex items-center gap-1.5 transition-all duration-300 ${
+      <div className={`flex items-center gap-1 transition-all duration-200 ${
         isReconnecting
-          ? 'text-amber-400 scale-110 font-bold'
+          ? 'text-amber-400 font-bold'
           : isBypassing
-          ? 'text-rose-400 scale-110'
+          ? 'text-rose-400'
           : isHighlighted
-          ? 'text-cyan-400 scale-105'
-          : 'text-slate-500'
+          ? 'text-cyan-400'
+          : 'text-slate-600'
       }`}>
         
         {/* Pointer Tag */}
         <div className="flex flex-col items-center">
-          <span className={`text-[10px] font-mono tracking-wider uppercase px-1.5 py-0.5 rounded border transition-colors ${
+          <span className={`text-[10px] font-mono tracking-wider lowercase px-1.5 py-0.5 rounded border transition-colors ${
             isReconnecting
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse'
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
               : isBypassing
               ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 line-through'
               : isHighlighted
               ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-              : 'bg-slate-900/80 text-slate-400 border-slate-800'
+              : 'bg-slate-950 text-slate-500 border-slate-800'
           }`}>
             {label}
           </span>
           
           {/* Arrow Glyph */}
-          <div className="flex items-center justify-center mt-1">
+          <div className="flex items-center justify-center mt-0.5">
             {isVertical ? (
-              <CornerDownRight className={`w-5 h-5 transition-transform ${isReconnecting ? 'rotate-90 animate-bounce' : 'rotate-90'}`} />
+              <CornerDownRight className="w-4 h-4 rotate-90" />
             ) : (
-              <ArrowRight className={`w-5 h-5 transition-transform ${isReconnecting ? 'animate-pulse' : ''}`} />
+              <ArrowRight className="w-4 h-4" />
             )}
           </div>
         </div>
 
       </div>
-
-      {targetAddress && (
-        <span className="text-[9px] font-mono text-slate-400 mt-0.5">
-          ➔ {targetAddress}
-        </span>
-      )}
     </div>
   );
 };
