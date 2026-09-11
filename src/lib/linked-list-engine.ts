@@ -1,7 +1,7 @@
-import { NodeData, NodeMetadata, OperationResult, OperationStep, OperationType } from '../types/linked-list';
+import { NodeData, NodeMetadata, OperationResult, OperationStep } from '../types/linked-list';
 import { CODE_SNIPPETS } from './code-snippets';
 
-export class LLNode<T = string> {
+export class LLNode<T extends string = string> {
   public id: string;
   public conceptualAddress: string;
   public data: T;
@@ -27,7 +27,7 @@ export class LLNode<T = string> {
   }
 }
 
-export class LinkedList<T = string> {
+export class LinkedList<T extends string = string> {
   public head: LLNode<T> | null = null;
   private nodeCounter: number = 1;
 
@@ -37,8 +37,7 @@ export class LinkedList<T = string> {
   }
 
   private generateNodeId(): string {
-    const id = `node_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    return id;
+    return `node_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   }
 
   private generateConceptualAddress(): string {
@@ -116,9 +115,9 @@ export class LinkedList<T = string> {
   /**
    * Insert at the end of the linked list
    */
-  public insertAtEndWithSteps(data: T, metadata?: NodeMetadata): OperationResult {
+  public insertAtEndWithSteps(data: T, metadata?: NodeMetadata): OperationResult<T> {
     const beforeState = this.toArray();
-    const steps: OperationStep[] = [];
+    const steps: OperationStep<T>[] = [];
     const newNode = new LLNode<T>(
       this.generateNodeId(),
       this.generateConceptualAddress(),
@@ -138,7 +137,6 @@ export class LinkedList<T = string> {
     });
 
     if (!this.head) {
-      // Step 2: Empty list case -> head = newNode
       this.head = newNode;
       steps.push({
         stepIndex: 2,
@@ -150,7 +148,6 @@ export class LinkedList<T = string> {
         pointerStateDescription: `HEAD -> ${newNode.conceptualAddress} -> NULL`
       });
     } else {
-      // Step 2: Start traversal from head to find tail
       let current = this.head;
       const visitedIds: string[] = [current.id];
 
@@ -181,7 +178,6 @@ export class LinkedList<T = string> {
         });
       }
 
-      // Found the tail! Now link current->next = newNode
       current.next = newNode;
 
       steps.push({
@@ -226,9 +222,9 @@ export class LinkedList<T = string> {
   /**
    * Insert at the beginning of the linked list (new HEAD)
    */
-  public insertAtBeginningWithSteps(data: T, metadata?: NodeMetadata): OperationResult {
+  public insertAtBeginningWithSteps(data: T, metadata?: NodeMetadata): OperationResult<T> {
     const beforeState = this.toArray();
-    const steps: OperationStep[] = [];
+    const steps: OperationStep<T>[] = [];
     const newNode = new LLNode<T>(
       this.generateNodeId(),
       this.generateConceptualAddress(),
@@ -289,11 +285,10 @@ export class LinkedList<T = string> {
   /**
    * Insert after a specific target node
    */
-  public insertAfterWithSteps(targetIdentifier: string, data: T, metadata?: NodeMetadata): OperationResult {
+  public insertAfterWithSteps(targetIdentifier: string, data: T, metadata?: NodeMetadata): OperationResult<T> {
     const beforeState = this.toArray();
-    const steps: OperationStep[] = [];
+    const steps: OperationStep<T>[] = [];
 
-    // Step 1: Find target node
     let current = this.head;
     const visitedIds: string[] = [];
     let found = false;
@@ -420,9 +415,9 @@ export class LinkedList<T = string> {
   /**
    * Delete a node by name or id
    */
-  public deleteWithSteps(targetIdentifier: string): OperationResult {
+  public deleteWithSteps(targetIdentifier: string): OperationResult<T> {
     const beforeState = this.toArray();
-    const steps: OperationStep[] = [];
+    const steps: OperationStep<T>[] = [];
 
     if (!this.head) {
       return {
@@ -563,7 +558,6 @@ export class LinkedList<T = string> {
     const targetNode = current.next;
     const successorNode = targetNode.next;
 
-    // Step: Identify nodes
     steps.push({
       stepIndex: stepNum++,
       title: `2. Predecessor and Target Identified`,
@@ -576,7 +570,6 @@ export class LinkedList<T = string> {
       pointerStateDescription: `current=${predecessorNode.conceptualAddress}, nodeToDelete=${targetNode.conceptualAddress}`
     });
 
-    // Step: Pointer redirection
     predecessorNode.next = successorNode;
     steps.push({
       stepIndex: stepNum++,
@@ -590,7 +583,6 @@ export class LinkedList<T = string> {
       pointerStateDescription: `${predecessorNode.conceptualAddress}->next -> ${successorNode ? successorNode.conceptualAddress : 'NULL'}`
     });
 
-    // Step: Deallocation & completion
     steps.push({
       stepIndex: stepNum,
       title: `4. Free Node and Finalize`,
@@ -621,9 +613,9 @@ export class LinkedList<T = string> {
   /**
    * Search for a node by value
    */
-  public searchWithSteps(query: string): OperationResult {
+  public searchWithSteps(query: string): OperationResult<T> {
     const beforeState = this.toArray();
-    const steps: OperationStep[] = [];
+    const steps: OperationStep<T>[] = [];
     const normalizedQuery = query.trim().toLowerCase();
 
     if (!this.head) {
@@ -652,7 +644,6 @@ export class LinkedList<T = string> {
     let foundIndex = -1;
     const visitedIds: string[] = [];
 
-    // Step 1: Initialize pointer
     steps.push({
       stepIndex: 1,
       title: "1. Initialize Traversal at HEAD",
@@ -765,9 +756,9 @@ export class LinkedList<T = string> {
   /**
    * Traverse all nodes sequentially
    */
-  public traverseWithSteps(): OperationResult {
+  public traverseWithSteps(): OperationResult<T> {
     const beforeState = this.toArray();
-    const steps: OperationStep[] = [];
+    const steps: OperationStep<T>[] = [];
     const totalNodes = beforeState.length;
 
     if (!this.head) {
@@ -792,7 +783,6 @@ export class LinkedList<T = string> {
     let visitedCount = 0;
     const visitedIds: string[] = [];
 
-    // Step 1: Start at head
     steps.push({
       stepIndex: 1,
       title: "1. Begin Traversal at HEAD",
@@ -836,7 +826,6 @@ export class LinkedList<T = string> {
       }
     }
 
-    // Step: Finish at NULL
     steps.push({
       stepIndex: stepNum,
       title: "Traversal Complete (Reached NULL)",

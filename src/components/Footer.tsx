@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link2, ArrowUp, Github, Heart } from 'lucide-react';
+import { Link2, ArrowUp, Heart, Sparkles } from 'lucide-react';
 import { useAppState } from '../context/AppStateContext';
 
 export const Footer: React.FC = () => {
-  const { scenario, executeReset } = useAppState();
+  const { executeReset } = useAppState();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -56,7 +56,7 @@ export const Footer: React.FC = () => {
             Adapted from Case Study 1: <em>"Tim's City Tour — Managing Landmarks with a Linked List"</em>. Punjab landmark representations are configured for interactive educational visualization.
           </p>
           <div className="shrink-0 flex items-center gap-1">
-            Built with React &amp; TypeScript
+            Built with React, TypeScript &amp; Tailwind CSS
           </div>
         </div>
 

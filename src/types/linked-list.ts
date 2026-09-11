@@ -9,7 +9,7 @@ export interface NodeMetadata {
 
 export interface NodeData<T = string> {
   id: string;
-  conceptualAddress: string; // e.g., "Node #01" or "0x7FFE1"
+  conceptualAddress: string; // e.g., "Node #01"
   data: T;
   metadata?: NodeMetadata;
   nextId: string | null;
@@ -23,45 +23,45 @@ export interface CodeLineExplanation {
   explanation: string;
 }
 
-export interface OperationStep {
+export interface OperationStep<T = string> {
   stepIndex: number;
   title: string;
   description: string;
   activeNodeId?: string | null;
   targetNodeId?: string | null;
   affectedNextNodeId?: string | null;
-  newNodeData?: NodeData | null;
+  newNodeData?: NodeData<T> | null;
   highlightedCodeLine?: number;
   visitedNodeIds?: string[];
   pointerStateDescription?: string;
   status: 'idle' | 'checking' | 'found' | 'not_found' | 'inserting' | 'reconnecting' | 'deleting' | 'complete';
 }
 
-export interface OperationResult {
+export interface OperationResult<T = string> {
   success: boolean;
   message: string;
   operation: OperationType;
-  steps: OperationStep[];
+  steps: OperationStep<T>[];
   codeSnippet: CodeLineExplanation[];
   complexity: {
     time: string;
     space: string;
     explanation: string;
   };
-  beforeState: NodeData[];
-  afterState: NodeData[];
+  beforeState: NodeData<T>[];
+  afterState: NodeData<T>[];
   searchedValue?: string;
   foundIndex?: number;
   totalComparisons?: number;
 }
 
-export interface HistoryItem {
+export interface HistoryItem<T = string> {
   id: string;
   index: number;
   timestamp: string;
   operation: OperationType;
   summary: string;
   detail: string;
-  nodeSnapshot: NodeData[];
-  result: OperationResult;
+  nodeSnapshot: NodeData<T>[];
+  result: OperationResult<T>;
 }
